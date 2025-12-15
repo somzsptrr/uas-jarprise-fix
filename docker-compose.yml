@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # 1. Database Server (MySQL)
+  # Hanya bisa diakses langsung via localhost (Simulasi Server Lokal)
+  db:
+    image: mysql:5.7
+    container_name: raya_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: raya_corp_db
+      MYSQL_USER: raya_user
+      MYSQL_PASSWORD: raya_password
+    ports:
+      - "127.0.0.1:3306:3306" # Binding ke localhost agar tidak terekspos ke internet publik
+    networks:
+      - raya_network
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # 2. Web Server (Apache + PHP)
+  web:
+    build: .
+    container_name: raya_web
+    depends_on:
+      - db
+    ports:
+      - "8080:80" # Web bisa diakses publik di port 8080
+    networks:
+      - raya_network
+    volumes:
+      - ./src:/var/www/html
+
+  # 3. FTP Server
+  ftp:
+    image: fauria/vsftpd
+    container_name: raya_ftp
+    restart: always
+    environment:
+      FTP_USER: rayaadmin
+      FTP_PASS: ftppassword
+      PASV_ADDRESS: 127.0.0.1      # <-- PENTING: Supaya Passive Mode jalan
+      PASV_MIN_PORT: 21100
+      PASV_MAX_PORT: 21110
+    ports:
+      - "20:20"                    # <-- PENTING: Jalur Data (Active Mode)
+      - "21:21"                    # Jalur Perintah
+      - "21100-21110:21100-21110"  # Jalur Pasif
+    networks:
+      - raya_network
+    volumes:
+      - ./ftp_storage:/home/vsftpd
+
+networks:
+  raya_network:
+    driver: bridge
+
+volumes:
+  db_data:
