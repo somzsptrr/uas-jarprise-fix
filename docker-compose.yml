@@ -31,29 +31,10 @@ services:
     volumes:
       - ./src:/var/www/html
 
-  # 3. FTP Server
-  ftp:
-    image: fauria/vsftpd
-    container_name: raya_ftp
-    restart: always
-    environment:
-      FTP_USER: rayaadmin
-      FTP_PASS: ftppassword
-      PASV_ADDRESS: 127.0.0.1      # <-- PENTING: Supaya Passive Mode jalan
-      PASV_MIN_PORT: 21100
-      PASV_MAX_PORT: 21110
-    ports:
-      - "20:20"                    # <-- PENTING: Jalur Data (Active Mode)
-      - "21:21"                    # Jalur Perintah
-      - "21100-21110:21100-21110"  # Jalur Pasif
-    networks:
-      - raya_network
-    volumes:
-      - ./ftp_storage:/home/vsftpd
-
 networks:
   raya_network:
     driver: bridge
 
 volumes:
+
   db_data:
